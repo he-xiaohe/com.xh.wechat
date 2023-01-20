@@ -2,6 +2,7 @@ package com.xh.wechat.web;
 
 
 import com.thoughtworks.xstream.XStream;
+import com.xh.wechat.Util.WordUtil;
 import com.xh.wechat.message.TextMessage;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.dom4j.Document;
@@ -88,7 +89,8 @@ public class WxController {
         }
         System.out.println(map);
         //回复文本消息
-        String message =getReplyMessage(map);
+//        String message =getReplyMessage(map);
+        String message =getReplyMessageByWord(map);
 
         return message;
     }
@@ -113,4 +115,23 @@ public class WxController {
         return xml;
     }
 
+
+
+    private String getReplyMessageByWord(Map<String, String> map) {
+        TextMessage textMessage = new TextMessage();
+        textMessage.setToUserName(map.get("FromUserName"));
+        textMessage.setFromUserName(map.get("ToUserName"));
+        textMessage.setMsgType("text");
+        String content = WordUtil.getWords(map.get("Content"));
+        textMessage.setContent(content);
+
+
+        textMessage.setCreateTime(System.currentTimeMillis()/1000);
+
+        //xStream将Java对象转换xml
+        XStream xStream = new XStream();
+        xStream.processAnnotations(TextMessage.class);
+        String xml = xStream.toXML(textMessage);
+        return xml;
+    }
 }
