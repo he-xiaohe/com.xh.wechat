@@ -3,6 +3,8 @@ package com.xh.wechat.web;
 
 import com.thoughtworks.xstream.XStream;
 import com.xh.wechat.Util.WordUtil;
+import com.xh.wechat.message.Article;
+import com.xh.wechat.message.NewsMessage;
 import com.xh.wechat.message.TextMessage;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.dom4j.Document;
@@ -88,9 +90,15 @@ public class WxController {
             throw new RuntimeException(e);
         }
         System.out.println(map);
+        String message =" ";
         //回复文本消息
 //        String message =getReplyMessage(map);
-        String message =getReplyMessageByWord(map);
+        if ("图文".equals(map.get("Content"))){
+            message = getReplyMessagNewMessage(map);
+        }else {
+             message =getReplyMessageByWord(map);
+        }
+
 
         return message;
     }
@@ -133,5 +141,32 @@ public class WxController {
         xStream.processAnnotations(TextMessage.class);
         String xml = xStream.toXML(textMessage);
         return xml;
+    }
+    /*
+    * 回复图文消息
+    * */
+    private String getReplyMessagNewMessage(Map<String,String>map){
+        NewsMessage newsMessage = new NewsMessage();
+        newsMessage.setToUserName(map.get("FromUserName"));
+        newsMessage.setFromUserName(map.get("ToUserName"));
+        newsMessage.setMsgType("news");
+        newsMessage.setCreateTime(System.currentTimeMillis()/1000);
+        newsMessage.setArticleCount(1);
+        List<Article>articles = new ArrayList<>();
+        Article article = new Article();
+        article.setTitle("小贺Java微信公众号开发");
+        article.setDescription("详细的微信公众号教程");
+        article.setUrl("https://www.csdn.net/");
+        //{ http://mmbiz.qpic.cn/mmbiz_jpg/OVvuFckM4lnkx4exshicVZdQFSEmq0haxp7UiazgibsLfhBsbcc978iaMp2NNuCVl2HEPnjMWUiaZeGw7TYiaapKbKvA/0, MsgId=23968659846430751}
+        //http://mmbiz.qpic.cn/mmbiz_jpg/OVvuFckM4lnkx4exshicVZdQFSEmq0haxU4fbvkCO7CrkzcNEXspgKUkb0mUbmUu3vnDhzswfODPVvRQoLgDuUg/0, MsgId=23968680801512011}
+       // article.setPicUrl("http://mmbiz.qpic.cn/mmbiz_jpg/OVvuFckM4lnkx4exshicVZdQFSEmq0haxp7UiazgibsLfhBsbcc978iaMp2NNuCVl2HEPnjMWUiaZeGw7TYiaapKbKvA/0");
+        article.setPicUrl("http://mmbiz.qpic.cn/mmbiz_jpg/OVvuFckM4lnkx4exshicVZdQFSEmq0haxU4fbvkCO7CrkzcNEXspgKUkb0mUbmUu3vnDhzswfODPVvRQoLgDuUg/0");
+
+        articles.add(article);
+        newsMessage.setArticles(articles);
+        XStream xStream = new XStream();
+        xStream.processAnnotations(NewsMessage.class);
+        String xml = xStream.toXML(newsMessage);
+        return xml ;
     }
 }
